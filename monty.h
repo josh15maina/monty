@@ -1,17 +1,15 @@
 #ifndef MONTY_H_
 #define MONTY_H_
 
-/** Libraries **/
-
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-
-/** Structs **/
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#define BUF_SIZE 4096
+#define MOD_STK 0
+#define MOD_QUE 1
 
 /**
  * struct stack_s - doubly linked list representation of a stack (or queue)
@@ -28,8 +26,6 @@ typedef struct stack_s
 	struct stack_s *prev;
 	struct stack_s *next;
 } stack_t;
-
-
 /**
  * struct instruction_s - opcode and its function
  * @opcode: the opcode
@@ -43,63 +39,65 @@ typedef struct instruction_s
 	char *opcode;
 	void (*f)(stack_t **stack, unsigned int line_number);
 } instruction_t;
-
 /**
- * struct global_var - contains global variables
- * @mode: 0 stack, 1 queue (default stack)
- * @gbuff: getline buffer;
- * @n: argument of opcode (value of stack)
- * @head: head of stack
- * @line_number: keeps track of current line #
- * @fp: pointer to file descriptor
- *
- * Description: Struct for keeping global vars
- *
+ * struct info_s - hold info on current program states
+ * @buffer: input buffer
+ * @op: opcode
+ * @argument: opcode argument
+ * @stack: stack
+ * @fptr: file ptr
+ * @mode: stack / queue
+ * @size: stakc/queue size
+ * @ln: processing line number
  */
-
-/** Global **/
-
-typedef struct global_var
+typedef struct info_s
 {
-	int mode;
-	char *gbuff;
-	char *n;
-	stack_t *head;
-	unsigned int line_number;
-	FILE *fp;
-} global_m;
+	char *buffer;
+	char *op;
+	char *argument;
+	stack_t *stack;
+	FILE *fptr;
+	unsigned int mode;
+	unsigned int size;
+	unsigned int ln;
+} info_t;
 
-extern global_m globm;
+int _strcmp(char *s1, char *s2);
 
-/** Opcode Functions **/
+void state_init(void);
+void state_clear(void);
+void process_line(char *line);
+void (*get_func(char *op))(stack_t **stack, unsigned int line_number);
+void runner(void);
 
-void _push(stack_t **stack, unsigned int line_number);
-void _pall(stack_t **stack, unsigned int line_number);
-void _pint(stack_t **stack, unsigned int line_number);
-void _pop(stack_t **stack, unsigned int line_number);
-void _swap(stack_t **stack, unsigned int line_number);
+void push(stack_t **stack, unsigned int line_number);
+
+void pint(stack_t **stack, unsigned int line_number);
+void pop(stack_t **stack, unsigned int line_number);
+void swap(stack_t **stack, unsigned int line_number);
+void nop(stack_t **stack, unsigned int line_number);
+void pall(stack_t **stack, unsigned int line_number);
+void pchar(stack_t **stack, unsigned int line_number);
+void pstr(stack_t **stack, unsigned int line_number);
+void rotl(stack_t **stack, unsigned int line_number);
+void rotr(stack_t **stack, unsigned int line_number);
+
+void stack(stack_t **stack, unsigned int line_number);
+void queue(stack_t **stack, unsigned int line_number);
+
 void _add(stack_t **stack, unsigned int line_number);
-void _nop(stack_t **stack, unsigned int line_number);
 void _sub(stack_t **stack, unsigned int line_number);
-void _div(stack_t **stack, unsigned int line_number);
 void _mul(stack_t **stack, unsigned int line_number);
+void _div(stack_t **stack, unsigned int line_number);
 void _mod(stack_t **stack, unsigned int line_number);
-void _pchar(stack_t **stack, unsigned int line_number);
-void _pstr(stack_t **stack, unsigned int line_number);
-void _rotl(stack_t **stack, unsigned int line_number);
-void _rotr(stack_t **stack, unsigned int line_number);
-void _stack(stack_t **stack, unsigned int line_number);
-void _queue(stack_t **stack, unsigned int line_number);
 
-/** Aux Functions **/
-int get_opcode(char *opcode);
-void exit_op(void);
-
+size_t print_dlistint(const stack_t *h);
 stack_t *add_dnodeint(stack_t **head, const int n);
 stack_t *add_dnodeint_end(stack_t **head, const int n);
-int delete_node_index(stack_t **head, unsigned int index);
-void free_stack_t(stack_t *head);
+void free_dlistint(stack_t *head);
+stack_t *get_dnodeint_at_index(stack_t *head, unsigned int index);
+int delete_dnodeint_at_index(stack_t **head, unsigned int index);
 
-int _isnumber(char *s);
+extern info_t *state;
 
 #endif /* MONTY_H_ */
